@@ -1,0 +1,6 @@
+version: "3.3"
+services:
+  server:
+    build: ./transaction-service/.
+    ports:
+      - "3443:3443"
