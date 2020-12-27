@@ -1,0 +1,16 @@
+{
+  "name": "transaction-service",
+  "version": "1.0.0",
+  "description": "Micorservice that returns recent transaction of a given account.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "Felix Schulze Sindern",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1",
+    "mongodb": "^3.6.3"
+  }
+}
