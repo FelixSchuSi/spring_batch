@@ -19,7 +19,6 @@ public class InMemoryReader implements ItemReader<Object> {
         Object result = null;
         if (data.size() != 0 && index < data.size()){
             result = data.get(index);
-            System.out.println(result);
             index++;
         }
         return result;

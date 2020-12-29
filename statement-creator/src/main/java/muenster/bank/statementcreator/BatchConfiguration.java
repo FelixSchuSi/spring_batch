@@ -66,7 +66,7 @@ public class BatchConfiguration {
   @Bean
   public Step logInMemoryDataStep() {
     return stepBuilderFactory.get("logInMemoryDataStep").<Object, Object>chunk(10).reader(new InMemoryReader())
-        // .processor(objectLogger)
+        .processor(objectLogger)
         .writer(new InMemoryWriter()).build();
   }
 

@@ -10,8 +10,11 @@ function configureApp(app) {
     console.log(healthCheckMessage);
     res.send(healthCheckMessage);
   });
-  app.get("/transactions/:id", async (req, res) => {
-    const accountId = Number(req.params.id);
+  app.get("/transactions", async (req, res) => {
+    const accountId = Number(req.query.accountId);
+    console.log(accountId, req.query.accountId);
+    if (!accountId) { res.sendStatus(400); return }
+
     const { transactionDAO } = req.app.locals;
     const transactions = await transactionDAO.findAll({ accountId });
 

@@ -6,5 +6,8 @@
         "**/.factorypath": true
     },
     "editor.defaultFormatter": "redhat.java",
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
+    }
 }
