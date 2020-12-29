@@ -53,7 +53,7 @@ public class BatchConfiguration {
 
   @Bean
   public Job createStatementsJob() {
-    return jobBuilderFactory.get("createStatementsJob").incrementer(new RunIdIncrementer()).start(importCustomersStep())
+    return jobBuilderFactory.get("createStatementsJob").start(importCustomersStep())
         .next(importAccountsStep()).next(fetchTransactionsStep())
         .next(calculateNewBalancesStep())
         .next(generateStatementsStep()).build();
