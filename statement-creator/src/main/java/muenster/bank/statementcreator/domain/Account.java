@@ -14,24 +14,29 @@ public class Account {
     private long id;
     private BigDecimal balance;
     private Date lastStatementDate;
+    private String iban;
 
     public final List<Transaction> transactions = new ArrayList<>();
 
     public Account() {
     }
 
-    public Account(long id, BigDecimal balance, Date lastStatementDate) {
+    public Account(long id, BigDecimal balance, Date lastStatementDate, String IBAN) {
         this.id = id;
         this.balance = balance;
         this.lastStatementDate = lastStatementDate;
+        this.iban = iban;
     }
 
     @Override
     public String toString() {
-        return "Account{" + "id=" + id + ", balance=" + balance + ", lastStatementDate=" + lastStatementDate
-                + ", transactions=" + transactions + '}';
+        return "Account{" + "id=" + id + ", iban=" + iban + ", balance=" + balance + ", lastStatementDate="
+                + lastStatementDate + ", transactions=" + transactions + '}';
     }
 
+    public String getIban() {
+        return iban;
+    }
     public long getId() {
         return id;
     }

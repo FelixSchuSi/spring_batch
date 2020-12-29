@@ -12,6 +12,9 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
+import org.springframework.batch.item.file.FlatFileItemWriter;
+import org.springframework.batch.item.file.MultiResourceItemWriter;
+import org.springframework.batch.item.file.builder.MultiResourceItemWriterBuilder;
 import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
@@ -23,10 +26,14 @@ import org.springframework.web.client.RestTemplate;
 
 import muenster.bank.statementcreator.domain.Account;
 import muenster.bank.statementcreator.domain.Customer;
+import muenster.bank.statementcreator.domain.Statement;
 import muenster.bank.statementcreator.processor.HttpTransactionProcessor;
 import muenster.bank.statementcreator.processor.LoggerProcessor;
+import muenster.bank.statementcreator.processor.StatementConstructionProcessor;
 import muenster.bank.statementcreator.reader.InMemoryReader;
 import muenster.bank.statementcreator.writer.InMemoryWriter;
+import muenster.bank.statementcreator.writer.StatementHeaderWriter;
+import muenster.bank.statementcreator.writer.StatementLineWriter;
 
 @Configuration
 @EnableBatchProcessing
@@ -48,7 +55,7 @@ public class BatchConfiguration {
         // .start(importAccountsStep())
         .next(importAccountsStep())
         // .next(logInMemoryDataStep())
-        .next(fetchTransactionsStep()).next(logInMemoryDataStep()).build();
+        .next(fetchTransactionsStep()).next(generateStatementsStep()).build();
   }
 
   @Bean
@@ -79,6 +86,33 @@ public class BatchConfiguration {
   }
 
   @Bean
+  public Step generateStatementsStep() {
+    return this.stepBuilderFactory.get("generateStatementsStep").<Customer, Statement>chunk(1)
+        .reader(new InMemoryReader<Customer>("Customer")).processor(new StatementConstructionProcessor())
+        .writer(statementItemWriter()).build();
+  }
+
+  @Bean
+  public MultiResourceItemWriter<Statement> statementItemWriter() {
+    Path accountsJsonPath = Paths.get(System.getProperty("user.dir"), "target", "kontoauszug");
+    FileSystemResource resource = new FileSystemResource(accountsJsonPath);
+    return new MultiResourceItemWriterBuilder<Statement>().name("statementItemWriter").resource(resource)
+        .itemCountLimitPerResource(1).delegate(individualStatementItemWriter())
+        .resourceSuffixCreator(index -> "-" + index + ".txt").build();
+  }
+
+  @Bean
+  public FlatFileItemWriter<Statement> individualStatementItemWriter() {
+    FlatFileItemWriter<Statement> itemWriter = new FlatFileItemWriter<>();
+
+    itemWriter.setName("individualStatementItemWriter");
+    itemWriter.setHeaderCallback(new StatementHeaderWriter());
+    itemWriter.setLineAggregator(new StatementLineWriter());
+
+    return itemWriter;
+  }
+
+  @Bean
   public ExecutionContextPromotionListener promotionListener() {
     // Promotes Data that is stored in StepExecutionContext to JobExecutionContext
     ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
@@ -93,8 +127,8 @@ public class BatchConfiguration {
     jsonObjectReader.setMapper(objectMapper);
     Path customersJsonPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "input-data",
         "customers.json");
-    FileSystemResource ressource = new FileSystemResource(customersJsonPath);
-    return new JsonItemReaderBuilder<Customer>().jsonObjectReader(jsonObjectReader).resource(ressource)
+    FileSystemResource resource = new FileSystemResource(customersJsonPath);
+    return new JsonItemReaderBuilder<Customer>().jsonObjectReader(jsonObjectReader).resource(resource)
         .name("customersJsonReader").build();
   }
 
@@ -105,8 +139,8 @@ public class BatchConfiguration {
     jsonObjectReader.setMapper(objectMapper);
     Path accountsJsonPath = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "input-data",
         "accounts.json");
-    FileSystemResource ressource = new FileSystemResource(accountsJsonPath);
-    return new JsonItemReaderBuilder<Account>().jsonObjectReader(jsonObjectReader).resource(ressource)
+    FileSystemResource resource = new FileSystemResource(accountsJsonPath);
+    return new JsonItemReaderBuilder<Account>().jsonObjectReader(jsonObjectReader).resource(resource)
         .name("accountsJsonReader").build();
   }
 
