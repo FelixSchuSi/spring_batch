@@ -22,11 +22,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import muenster.bank.statementcreator.domain.Account;
 import muenster.bank.statementcreator.domain.Customer;
 import muenster.bank.statementcreator.domain.Statement;
+import muenster.bank.statementcreator.processor.BalanceCalculatorProcessor;
 import muenster.bank.statementcreator.processor.HttpTransactionProcessor;
 import muenster.bank.statementcreator.processor.LoggerProcessor;
 import muenster.bank.statementcreator.processor.StatementConstructionProcessor;
@@ -52,37 +54,36 @@ public class BatchConfiguration {
   @Bean
   public Job createStatementsJob() {
     return jobBuilderFactory.get("createStatementsJob").incrementer(new RunIdIncrementer()).start(importCustomersStep())
-        // .start(importAccountsStep())
-        .next(importAccountsStep())
-        // .next(logInMemoryDataStep())
-        .next(fetchTransactionsStep()).next(generateStatementsStep()).build();
+        .next(importAccountsStep()).next(fetchTransactionsStep())
+        .next(calculateNewBalancesStep())
+        .next(generateStatementsStep()).build();
   }
 
   @Bean
   public Step importCustomersStep() {
-    return stepBuilderFactory.get("importCustomerStep").<Customer, Customer>chunk(10).reader(customerJsonReader())
-        // .processor(customerLogger)
-        .writer(new InMemoryWriter()).listener(promotionListener()).build();
+    return stepBuilderFactory.get("importCustomersStep").<Customer, Customer>chunk(10).reader(customerJsonReader())
+        .writer(new InMemoryWriter<Customer>()).listener(promotionListener()).build();
   }
 
   @Bean
   public Step importAccountsStep() {
-    return stepBuilderFactory.get("importCustomerStep").<Account, Account>chunk(10).reader(accountJsonReader())
-        // .processor(accountLogger)
-        .writer(new InMemoryWriter()).listener(promotionListener()).build();
+    return stepBuilderFactory.get("importAccountsStep").<Account, Account>chunk(1).reader(accountJsonReader())
+        .writer(new InMemoryWriter<Account>()).listener(promotionListener()).build();
   }
 
   @Bean
   public Step fetchTransactionsStep() {
-    return stepBuilderFactory.get("logInMemoryDataStep").<Account, Account>chunk(10)
+    return stepBuilderFactory.get("fetchTransactionsStep").<Account, Account>chunk(1)
         .reader(new InMemoryReader<Account>("Account")).processor(httpTransactionProcessor(null))
-        .writer(new InMemoryWriter()).build();
+        .writer(new InMemoryWriter<Account>()).faultTolerant().retryLimit(3).retry(HttpServerErrorException.class)
+        .build();
   }
 
   @Bean
-  public Step logInMemoryDataStep() {
-    return stepBuilderFactory.get("logInMemoryDataStep").<Object, Object>chunk(10)
-        .reader(new InMemoryReader<Object>("Account")).processor(objectLogger).writer(new InMemoryWriter()).build();
+  public Step calculateNewBalancesStep() {
+    return stepBuilderFactory.get("calculateNewBalancesStep").<Account, Account>chunk(1)
+        .reader(new InMemoryReader<Account>("Account")).processor(new BalanceCalculatorProcessor())
+        .writer(new InMemoryWriter<Account>()).build();
   }
 
   @Bean

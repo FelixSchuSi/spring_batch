@@ -19,9 +19,16 @@ public class Transaction {
     private BigDecimal debit;
 
     private Date timestamp;
+
     private BigDecimal transactionAmount;
 
+    private boolean serverError = false;
+
     public Transaction() {
+    }
+
+    public Transaction(boolean serverError) {
+        this.serverError = serverError;
     }
 
     public Transaction(long transactionId, long accountId, String description, BigDecimal credit, BigDecimal debit,
@@ -41,6 +48,10 @@ public class Transaction {
                 + description + '\'' + ", credit=" + credit + ", debit=" + debit + ", timestamp=" + timestamp + '}';
     }
 
+    public boolean isServerError() {
+        return serverError;
+    }
+    
     public void setTransactionId(long transactionId) {
         this.transactionId = transactionId;
     }

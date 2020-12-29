@@ -36,29 +36,36 @@ public class StatementLineWriter implements LineAggregator<Statement> {
 
                 output.append(
                         String.format(STATEMENT_LINE, account.getIban(), account.getLastStatementDate(), new Date()));
-
+                output.append(String.format("%65s %tF: %9.2f €\n\n", "Kontostand am", account.getLastStatementDate(),
+                        account.getBalance()));
                 BigDecimal creditAmount = new BigDecimal(0);
                 BigDecimal debitAmount = new BigDecimal(0);
                 if (account.getTransactions().size() == 0) {
-                    output.append("               Es wurden keine Transaktionen im Zeitraum getätigt.");
+                    output.append("               Es wurden keine Transaktionen im Zeitraum getätigt.\n");
                 }
                 for (Transaction transaction : account.getTransactions()) {
-                    if (transaction.getCredit() != null) {
-                        creditAmount = creditAmount.add(transaction.getCredit());
+                    if (transaction.isServerError()) {
+                        output.append("               ERROR: FEHLER BEIM LADEN DER TRANSAKTIONEN!\n");
+                    } else {
+                        if (transaction.getCredit() != null) {
+                            creditAmount = creditAmount.add(transaction.getCredit());
+                        }
+
+                        if (transaction.getDebit() != null) {
+                            debitAmount = debitAmount.add(transaction.getDebit());
+                        }
+
+                        output.append(String.format("               %tF          %-40s    %8.2f €\n",
+                                transaction.getTimestamp(), transaction.getDescription(),
+                                transaction.getTransactionAmount()));
                     }
 
-                    if (transaction.getDebit() != null) {
-                        debitAmount = debitAmount.add(transaction.getDebit());
-                    }
-
-                    output.append(
-                            String.format("               %tF          %-50s    %8.2f €\n", transaction.getTimestamp(),
-                                    transaction.getDescription(), transaction.getTransactionAmount()));
                 }
 
-                output.append(String.format("%82s %14.2f €\n", "Summe Soll:", debitAmount));
-                output.append(String.format("%83s %13.2f €\n", "Summe Haben:", creditAmount));
-                output.append(String.format("%82s %14.2f €\n\n", "Kontostand:", account.getBalance()));
+                output.append(String.format("%63s %23.2f €\n", "Summe Soll:", debitAmount));
+                output.append(String.format("%64s %22.2f €\n", "Summe Haben:", creditAmount));
+                output.append(
+                        String.format("%65s %tF: %9.2f €\n\n", "Kontostand am", new Date(), account.getNewBalance()));
             }
         }
     }
