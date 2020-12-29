@@ -19,18 +19,20 @@ public class Transaction {
     private BigDecimal debit;
 
     private Date timestamp;
+    private BigDecimal transactionAmount;
 
     public Transaction() {
     }
 
     public Transaction(long transactionId, long accountId, String description, BigDecimal credit, BigDecimal debit,
-            Date timestamp) {
+            Date timestamp, BigDecimal transactionAmount) {
         this.transactionId = transactionId;
         this.accountId = accountId;
         this.description = description;
         this.credit = credit;
         this.debit = debit;
         this.timestamp = timestamp;
+        this.transactionAmount = transactionAmount;
     }
 
     @Override
@@ -88,16 +90,15 @@ public class Transaction {
     }
 
     public BigDecimal getTransactionAmount() {
-        if (credit != null) {
-            if (debit != null) {
-                return credit.add(debit);
-            } else {
-                return credit;
-            }
+        if (credit != null && debit != null) {
+            transactionAmount = credit.add(debit);
+        } else if (credit != null) {
+            transactionAmount = credit;
         } else if (debit != null) {
-            return debit;
+            transactionAmount = debit;
         } else {
-            return new BigDecimal(0);
+            transactionAmount = new BigDecimal(0);
         }
+        return transactionAmount;
     }
 }

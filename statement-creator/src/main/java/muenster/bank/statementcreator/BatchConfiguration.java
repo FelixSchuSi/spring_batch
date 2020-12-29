@@ -3,8 +3,6 @@ package muenster.bank.statementcreator;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import javax.batch.api.chunk.ItemProcessor;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.batch.core.Job;
@@ -14,7 +12,6 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
-import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
@@ -51,7 +48,7 @@ public class BatchConfiguration {
         // .start(importAccountsStep())
         .next(importAccountsStep())
         // .next(logInMemoryDataStep())
-        .next(fetchTransactionsStep()).build();
+        .next(fetchTransactionsStep()).next(logInMemoryDataStep()).build();
   }
 
   @Bean
@@ -74,13 +71,12 @@ public class BatchConfiguration {
         .reader(new InMemoryReader<Account>("Account")).processor(httpTransactionProcessor(null))
         .writer(new InMemoryWriter()).build();
   }
-  // @Bean
-  // public Step logInMemoryDataStep() {
-  // return stepBuilderFactory.get("logInMemoryDataStep").<Object,
-  // Object>chunk(10).reader(new InMemoryReader())
-  // .processor(objectLogger)
-  // .writer(new InMemoryWriter()).build();
-  // }
+
+  @Bean
+  public Step logInMemoryDataStep() {
+    return stepBuilderFactory.get("logInMemoryDataStep").<Object, Object>chunk(10)
+        .reader(new InMemoryReader<Object>("Account")).processor(objectLogger).writer(new InMemoryWriter()).build();
+  }
 
   @Bean
   public ExecutionContextPromotionListener promotionListener() {
