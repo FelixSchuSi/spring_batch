@@ -9,13 +9,13 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("Account")
-public class Account  {
+public class Account {
 
     private long id;
     private BigDecimal balance;
     private Date lastStatementDate;
 
-    private final List<Transaction> transactions = new ArrayList<>();
+    public final List<Transaction> transactions = new ArrayList<>();
 
     public Account() {
     }
@@ -28,7 +28,8 @@ public class Account  {
 
     @Override
     public String toString() {
-        return "Account{" + "id=" + id + ", balance=" + balance + ", lastStatementDate=" + lastStatementDate + '}';
+        return "Account{" + "id=" + id + ", balance=" + balance + ", lastStatementDate=" + lastStatementDate
+                + ", transactions=" + transactions + '}';
     }
 
     public long getId() {

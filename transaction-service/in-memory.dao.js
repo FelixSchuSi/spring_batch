@@ -4,7 +4,7 @@ class InMemoryDAO {
   async create(partEntity) {
     const entity = {
       ...partEntity,
-      id: partEntity.accountId || 0
+      id: partEntity.transactionId || 0
     };
     this.entities.set(entity.id, entity);
     return Promise.resolve(entity);

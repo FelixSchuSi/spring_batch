@@ -12,16 +12,14 @@ function configureApp(app) {
   });
   app.get("/transactions", async (req, res) => {
     const accountId = Number(req.query.accountId);
-    console.log(accountId, req.query.accountId);
-    if (!accountId) { res.sendStatus(400); return }
+    if (Number.isNaN(accountId)) { res.sendStatus(400); return }
 
     const { transactionDAO } = req.app.locals;
     const transactions = await transactionDAO.findAll({ accountId });
 
-    console.log(`request for accountId: ${accountId}`);
-    console.log(`returning ${transactions.length} transactions.`);
+    if (accountId === 99) console.log(`request for accountId: ${accountId} returning ${transactions.length} transactions.`);
 
-    res.json({ transactions });
+    res.json(transactions);
   });
 }
 
