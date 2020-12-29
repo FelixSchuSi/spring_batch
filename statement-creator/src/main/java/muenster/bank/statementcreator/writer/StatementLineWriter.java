@@ -16,9 +16,9 @@ public class StatementLineWriter implements LineAggregator<Statement> {
     private static final String ADDRESS_LINE_ONE = String.format("%121s\n", "Münster Bank");
     private static final String ADDRESS_LINE_TWO = String.format("%120s\n", "Corrensstraße 25");
     private static final String ADDRESS_LINE_THREE = String.format("%120s\n\n", "48149 Münster");
-    private static final String STATEMENT_LINE_LEFT = "Kontoauszug für Ihr Konto mit der IBAN: %s";
-    private static final String STATEMENT_LINE_RIGHT = "Zeitraum: %tF bis %tF\n\n";
-    private static final String STATEMENT_LINE = STATEMENT_LINE_LEFT + "                       " + STATEMENT_LINE_RIGHT;
+    private static final String STATEMENT_LINE = "Kontoauszug für Ihr Konto mit der IBAN: %s\n";
+    // private static final String STATEMENT_LINE_RIGHT = "Zeitraum: %tF bis %tF\n\n";
+    // private static final String STATEMENT_LINE = STATEMENT_LINE_LEFT + "                       " + STATEMENT_LINE_RIGHT;
 
     public String aggregate(Statement statement) {
         StringBuilder output = new StringBuilder();
@@ -35,8 +35,8 @@ public class StatementLineWriter implements LineAggregator<Statement> {
             for (Account account : statement.getAccounts()) {
 
                 output.append(
-                        String.format(STATEMENT_LINE, account.getIban(), account.getLastStatementDate(), new Date()));
-                output.append(String.format("%65s %tF: %9.2f €\n\n", "Kontostand am", account.getLastStatementDate(),
+                        String.format(STATEMENT_LINE, account.getIban()));
+                output.append(String.format("%78s %tF: %9.2f €\n", "Kontostand am", account.getLastStatementDate(),
                         account.getBalance()));
                 BigDecimal creditAmount = new BigDecimal(0);
                 BigDecimal debitAmount = new BigDecimal(0);
@@ -55,17 +55,17 @@ public class StatementLineWriter implements LineAggregator<Statement> {
                             debitAmount = debitAmount.add(transaction.getDebit());
                         }
 
-                        output.append(String.format("               %tF          %-40s    %8.2f €\n",
+                        output.append(String.format("               %tF                    %-40s       %8.2f €\n",
                                 transaction.getTimestamp(), transaction.getDescription(),
                                 transaction.getTransactionAmount()));
                     }
 
                 }
 
-                output.append(String.format("%63s %23.2f €\n", "Summe Soll:", debitAmount));
-                output.append(String.format("%64s %22.2f €\n", "Summe Haben:", creditAmount));
+                output.append(String.format("%76s %23.2f €\n", "Summe Soll:", debitAmount));
+                output.append(String.format("%77s %22.2f €\n", "Summe Haben:", creditAmount));
                 output.append(
-                        String.format("%65s %tF: %9.2f €\n\n", "Kontostand am", new Date(), account.getNewBalance()));
+                        String.format("%78s %tF: %9.2f €\n\n", "Kontostand am", new Date(), account.getNewBalance()));
             }
         }
     }
