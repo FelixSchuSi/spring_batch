@@ -4,7 +4,7 @@ const { startDB } = require("./start-db.js");
 const { random500 } = require("./random-500.js");
 
 const port = 3443;
-const RANDOMLY_RETURN_500 = true;
+const RANDOMLY_RETURN_500 = false;
 
 function configureApp(app) {
   app.get("/", (req, res) => {
