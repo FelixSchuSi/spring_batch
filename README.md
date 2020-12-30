@@ -13,7 +13,6 @@ Die Antwort sollte wie folgt aussehen:
 ```
 
 ### Probelauf des Statement Creators
-# todo: muss install separat ausgeführt werden?
 > cd statement-creator/<br>
   mvn spring-boot:run
 
@@ -33,5 +32,5 @@ Hamilton, Ohio 28815                                                            
 Kontoauszug für Ihr Konto mit der IBAN: DE70500105177613517489
                                                                  Kontostand am 2020-12-27:    194,52 €
                Es wurden keine Transaktionen im Zeitraum getätigt.
-                                                                 Kontostand am 2020-12-30:    194,52 €
+                                                                 Kontostand am 2021-01-26:    194,52 €
 ```
