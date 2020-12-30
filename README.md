@@ -13,7 +13,7 @@
 
 Die Funktion des Microservices kann durch den Aufruf von ```http://localhost:3443/transactions?accountId=1``` mit einem Browser oder Postman überprüft werden.
 Die Antwort sollte wie folgt aussehen:
-> [{"transactionId":58,"accountId":1,"description":"Tagchat","credit":null,&nbsp;
+> [{"transactionId":58,"accountId":1,"description":"Tagchat","credit":null,<br>
 "debit":-1612,"timestamp":1611286955000,"transactionAmount":-1612,"id":58}]
 
 ### Probelauf des Statement Creators
