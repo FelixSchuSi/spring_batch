@@ -89,9 +89,6 @@ public class BatchConfiguration {
                 .reader(new InMemoryReader<Account>("Account"))
                 .processor(httpTransactionProcessor(null))
                 .writer(new InMemoryWriter<Account>())
-                .faultTolerant()
-                .retryLimit(3)
-                .retry(HttpServerErrorException.class)
                 .build();
     }
 
