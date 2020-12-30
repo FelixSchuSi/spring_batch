@@ -26,7 +26,7 @@ public class Transaction {
     }
 
     public Transaction(long transactionId, long accountId, String description, BigDecimal credit, BigDecimal debit,
-            Date timestamp, BigDecimal transactionAmount) {
+                       Date timestamp, BigDecimal transactionAmount) {
         this.transactionId = transactionId;
         this.accountId = accountId;
         this.description = description;

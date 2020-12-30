@@ -49,138 +49,162 @@ import muenster.bank.statementcreator.writer.StatementLineWriter;
 @EnableBatchProcessing
 public class BatchConfiguration {
 
-  @Autowired
-  public JobBuilderFactory jobBuilderFactory;
+    @Autowired
+    public JobBuilderFactory jobBuilderFactory;
 
-  @Autowired
-  public StepBuilderFactory stepBuilderFactory;
+    @Autowired
+    public StepBuilderFactory stepBuilderFactory;
 
-  @Bean
-  public Job createStatementsJob() {
-    return jobBuilderFactory.get("createStatementsJob").start(importCustomersStep()).next(importAccountsStep())
-        .next(fetchTransactionsStep()).next(calculateNewBalancesStep()).next(generateStatementsStep()).build();
-  }
+    @Bean
+    public Job createStatementsJob() {
+        return jobBuilderFactory.get("createStatementsJob")
+                .start(importCustomersStep())
+                .next(importAccountsStep())
+                .next(fetchTransactionsStep())
+                .next(calculateNewBalancesStep())
+                .next(generateStatementsStep())
+                .build();
+    }
 
-  @Bean
-  public Step importCustomersStep() {
-    return stepBuilderFactory.get("importCustomersStep").<Customer, Customer>chunk(10).reader(customerJsonReader())
-        .writer(new InMemoryWriter<Customer>()).listener(promotionListener()).build();
-  }
+    @Bean
+    public Step importCustomersStep() {
+        return stepBuilderFactory.get("importCustomersStep")
+                .<Customer, Customer>chunk(10)
+                .reader(customerJsonReader())
+                .writer(new InMemoryWriter<Customer>())
+                .listener(promotionListener())
+                .build();
+    }
 
-  @Bean
-  public Step importAccountsStep() {
-    return stepBuilderFactory.get("importAccountsStep").<Account, Account>chunk(1).reader(accountCsvReader())
-        .writer(new InMemoryWriter<Account>()).listener(promotionListener()).build();
-  }
+    @Bean
+    public Step importAccountsStep() {
+        return stepBuilderFactory.get("importAccountsStep").<Account, Account>chunk(1).reader(accountCsvReader())
+                .writer(new InMemoryWriter<Account>()).listener(promotionListener()).build();
+    }
 
-  @Bean
-  public Step fetchTransactionsStep() {
-    return stepBuilderFactory.get("fetchTransactionsStep").<Account, Account>chunk(1)
-        .reader(new InMemoryReader<Account>("Account")).processor(httpTransactionProcessor(null))
-        .writer(new InMemoryWriter<Account>()).faultTolerant().retryLimit(3).retry(HttpServerErrorException.class)
-        .build();
-  }
+    @Bean
+    public Step fetchTransactionsStep() {
+        return stepBuilderFactory.get("fetchTransactionsStep").
+                <Account, Account>chunk(1)
+                .reader(new InMemoryReader<Account>("Account"))
+                .processor(httpTransactionProcessor(null))
+                .writer(new InMemoryWriter<Account>())
+                .faultTolerant()
+                .retryLimit(3)
+                .retry(HttpServerErrorException.class)
+                .build();
+    }
 
-  @Bean
-  public Step calculateNewBalancesStep() {
-    return stepBuilderFactory.get("calculateNewBalancesStep").<Account, Account>chunk(1)
-        .reader(new InMemoryReader<Account>("Account")).processor(new BalanceCalculatorProcessor())
-        .writer(new InMemoryWriter<Account>()).build();
-  }
+    @Bean
+    public Step calculateNewBalancesStep() {
+        return stepBuilderFactory.get("calculateNewBalancesStep")
+                .<Account, Account>chunk(1)
+                .reader(new InMemoryReader<Account>("Account"))
+                .processor(new BalanceCalculatorProcessor())
+                .writer(new InMemoryWriter<Account>())
+                .build();
+    }
 
-  @Bean
-  public Step generateStatementsStep() {
-    return this.stepBuilderFactory.get("generateStatementsStep").<Customer, Statement>chunk(1)
-        .reader(new InMemoryReader<Customer>("Customer")).processor(new StatementConstructionProcessor())
-        .writer(statementWriter()).build();
-  }
+    @Bean
+    public Step generateStatementsStep() {
+        return this.stepBuilderFactory.get("generateStatementsStep")
+                .<Customer, Statement>chunk(1)
+                .reader(new InMemoryReader<Customer>("Customer"))
+                .processor(new StatementConstructionProcessor())
+                .writer(statementWriter())
+                .build();
+    }
 
-  @Bean
-  public MultiResourceItemWriter<Statement> statementWriter() {
-    Path accountsJsonPath = Paths.get(System.getProperty("user.dir"), "target", "kontoauszug");
-    FileSystemResource resource = new FileSystemResource(accountsJsonPath);
-    return new MultiResourceItemWriterBuilder<Statement>().name("statementItemWriter").resource(resource)
-        .itemCountLimitPerResource(1).delegate(individualStatementWriter())
-        .resourceSuffixCreator(index -> "-" + index + ".txt").build();
-  }
+    @Bean
+    public MultiResourceItemWriter<Statement> statementWriter() {
+        Path accountsJsonPath = Paths.get(System.getProperty("user.dir"), "target", "kontoauszug");
+        FileSystemResource resource = new FileSystemResource(accountsJsonPath);
+        return new MultiResourceItemWriterBuilder<Statement>()
+                .name("statementItemWriter")
+                .resource(resource)
+                .itemCountLimitPerResource(1)
+                .delegate(individualStatementWriter())
+                .resourceSuffixCreator(index -> "-" + index + ".txt")
+                .build();
+    }
 
-  @Bean
-  public FlatFileItemWriter<Statement> individualStatementWriter() {
-    FlatFileItemWriter<Statement> itemWriter = new FlatFileItemWriter<>();
+    @Bean
+    public FlatFileItemWriter<Statement> individualStatementWriter() {
+        FlatFileItemWriter<Statement> itemWriter = new FlatFileItemWriter<>();
 
-    itemWriter.setName("individualStatementItemWriter");
-    itemWriter.setHeaderCallback(new StatementHeaderWriter());
-    itemWriter.setLineAggregator(new StatementLineWriter());
+        itemWriter.setName("individualStatementItemWriter");
+        itemWriter.setHeaderCallback(new StatementHeaderWriter());
+        itemWriter.setLineAggregator(new StatementLineWriter());
 
-    return itemWriter;
-  }
+        return itemWriter;
+    }
 
-  @Bean
-  public ExecutionContextPromotionListener promotionListener() {
-    // Promotes Data that is stored in StepExecutionContext to JobExecutionContext
-    ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
-    listener.setKeys(new String[] { "Account", "Customer" });
-    return listener;
-  }
+    @Bean
+    public ExecutionContextPromotionListener promotionListener() {
+        // Promotes Data that is stored in StepExecutionContext to JobExecutionContext
+        ExecutionContextPromotionListener listener = new ExecutionContextPromotionListener();
+        listener.setKeys(new String[]{"Account", "Customer"});
+        return listener;
+    }
 
-  @Bean
-  public JsonItemReader<Customer> customerJsonReader() {
-    ObjectMapper objectMapper = new ObjectMapper();
-    JacksonJsonObjectReader<Customer> jsonObjectReader = new JacksonJsonObjectReader<>(Customer.class);
-    jsonObjectReader.setMapper(objectMapper);
-    Resource resource = new FileSystemResource("src/main/resources/input-data/customers.json");
-    return new JsonItemReaderBuilder<Customer>().jsonObjectReader(jsonObjectReader).resource(resource)
-        .name("customersJsonReader").build();
-  }
+    @Bean
+    public JsonItemReader<Customer> customerJsonReader() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JacksonJsonObjectReader<Customer> jsonObjectReader = new JacksonJsonObjectReader<>(Customer.class);
+        jsonObjectReader.setMapper(objectMapper);
+        Resource resource = new FileSystemResource("src/main/resources/input-data/customers.json");
+        return new JsonItemReaderBuilder<Customer>().jsonObjectReader(jsonObjectReader).resource(resource)
+                .name("customersJsonReader").build();
+    }
 
-  @Bean
-  public FlatFileItemReader<Account> accountCsvReader() {
-    FlatFileItemReader<Account> reader = new FlatFileItemReader<Account>();
-    reader.setResource(new FileSystemResource("src/main/resources/input-data/accounts.csv"));
-    reader.setLinesToSkip(1); // skip header
-    reader.setLineMapper(new DefaultLineMapper<Account>() {
-      {
-        setLineTokenizer(new DelimitedLineTokenizer() {
-          {
-            setNames(new String[] { "id", "balance", "lastStatementDate", "iban" });
-            setDelimiter(";");
-          }
+    @Bean
+    public FlatFileItemReader<Account> accountCsvReader() {
+        FlatFileItemReader<Account> reader = new FlatFileItemReader<Account>();
+        reader.setResource(new FileSystemResource("src/main/resources/input-data/accounts.csv"));
+        reader.setLinesToSkip(1); // skip header
+        reader.setLineMapper(new DefaultLineMapper<Account>() {
+            {
+                setLineTokenizer(new DelimitedLineTokenizer() {
+                    {
+                        setNames(new String[]{"id", "balance", "lastStatementDate", "iban"});
+                        setDelimiter(";");
+                    }
+                });
+                setFieldSetMapper(new BeanWrapperFieldSetMapper<Account>() {
+                    {
+                        setTargetType(Account.class);
+                        setDistanceLimit(0);
+                        setConversionService(stringToDateConversionService());
+                    }
+                });
+            }
         });
-        setFieldSetMapper(new BeanWrapperFieldSetMapper<Account>() {
-          {
-            setTargetType(Account.class);
-            setDistanceLimit(0);
-            setConversionService(stringToDateConversionService());
-          }
+        return reader;
+    }
+
+    @Bean
+    public ConversionService stringToDateConversionService() {
+        DefaultConversionService testConversionService = new DefaultConversionService();
+        DefaultConversionService.addDefaultConverters(testConversionService);
+        testConversionService.addConverter(new Converter<String, Date>() {
+            @Override
+            public Date convert(String text) {
+                Long timeLong = Long.parseLong(text);
+                Instant instant = Instant.ofEpochMilli(timeLong);
+                return Date.from(instant);
+            }
         });
-      }
-    });
-    return reader;
-  }
+        return testConversionService;
+    }
 
-  @Bean
-  public ConversionService stringToDateConversionService() {
-    DefaultConversionService testConversionService = new DefaultConversionService();
-    DefaultConversionService.addDefaultConverters(testConversionService);
-    testConversionService.addConverter(new Converter<String, Date>() {
-      @Override
-      public Date convert(String text) {
-        Long timeLong = Long.parseLong(text);
-        Instant instant = Instant.ofEpochMilli(timeLong);
-        return Date.from(instant);
-      }
-    });
-    return testConversionService;
-  }
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
-  @Bean
-  public RestTemplate restTemplate() {
-    return new RestTemplate();
-  }
-
-  @Bean
-  public HttpTransactionProcessor httpTransactionProcessor(RestTemplate restTemplate) {
-    return new HttpTransactionProcessor(restTemplate);
-  }
+    @Bean
+    public HttpTransactionProcessor httpTransactionProcessor(RestTemplate restTemplate) {
+        return new HttpTransactionProcessor(restTemplate);
+    }
 
 }

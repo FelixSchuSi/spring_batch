@@ -27,8 +27,8 @@ public class Customer {
     }
 
     public Customer(long id, String firstName, String middleName, String lastName, String address1, String address2,
-            String city, String state, String postalCode, String ssn, String emailAddress, String homePhone,
-            String cellPhone, String workPhone, int notificationPreferences, List<Long> accountIds) {
+                    String city, String state, String postalCode, String ssn, String emailAddress, String homePhone,
+                    String cellPhone, String workPhone, int notificationPreferences, List<Long> accountIds) {
         this.id = id;
         this.firstName = firstName;
         this.middleName = middleName;
