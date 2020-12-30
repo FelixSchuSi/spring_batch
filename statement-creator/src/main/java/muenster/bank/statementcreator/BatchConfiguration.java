@@ -87,7 +87,6 @@ public class BatchConfiguration {
         return stepBuilderFactory.get("fetchTransactionsStep").
                 <Account, Account>chunk(1)
                 .reader(new InMemoryReader<Account>("Account"))
-                .processor(httpTransactionProcessor(null))
                 .writer(new InMemoryWriter<Account>())
                 .build();
     }
