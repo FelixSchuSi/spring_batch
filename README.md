@@ -1,6 +1,6 @@
 # spring_batch
 
-Repository zur Vorstellung zum Thema *Batchprogramme mit Spring Batch* von Felix Schulze Sindern am 26.01.2020
+Repository zur Vorstellung **Batchprogramme mit Spring Batch** von Felix Schulze Sindern am 26.01.2020
 ## Vorbereitung
 ### Transaction Microservice starten
 > docker-compose up
