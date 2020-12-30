@@ -92,20 +92,20 @@ public class BatchConfiguration {
   public Step generateStatementsStep() {
     return this.stepBuilderFactory.get("generateStatementsStep").<Customer, Statement>chunk(1)
         .reader(new InMemoryReader<Customer>("Customer")).processor(new StatementConstructionProcessor())
-        .writer(statementItemWriter()).build();
+        .writer(statementWriter()).build();
   }
 
   @Bean
-  public MultiResourceItemWriter<Statement> statementItemWriter() {
+  public MultiResourceItemWriter<Statement> statementWriter() {
     Path accountsJsonPath = Paths.get(System.getProperty("user.dir"), "target", "kontoauszug");
     FileSystemResource resource = new FileSystemResource(accountsJsonPath);
     return new MultiResourceItemWriterBuilder<Statement>().name("statementItemWriter").resource(resource)
-        .itemCountLimitPerResource(1).delegate(individualStatementItemWriter())
+        .itemCountLimitPerResource(1).delegate(individualStatementWriter())
         .resourceSuffixCreator(index -> "-" + index + ".txt").build();
   }
 
   @Bean
-  public FlatFileItemWriter<Statement> individualStatementItemWriter() {
+  public FlatFileItemWriter<Statement> individualStatementWriter() {
     FlatFileItemWriter<Statement> itemWriter = new FlatFileItemWriter<>();
 
     itemWriter.setName("individualStatementItemWriter");
