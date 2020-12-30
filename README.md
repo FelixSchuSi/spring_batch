@@ -13,6 +13,7 @@ Die Antwort sollte wie folgt aussehen:
 ```
 
 ### Probelauf des Statement Creators
+**Hinweis:** Der Transaction Microservice muss während des Probelaufs hochgefahren sein.
 > cd statement-creator/<br>
   mvn spring-boot:run
 
