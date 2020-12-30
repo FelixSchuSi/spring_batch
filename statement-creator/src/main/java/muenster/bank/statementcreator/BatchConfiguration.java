@@ -2,6 +2,8 @@ package muenster.bank.statementcreator;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
+import java.util.Date;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -12,15 +14,24 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.listener.ExecutionContextPromotionListener;
+import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.MultiResourceItemWriter;
 import org.springframework.batch.item.file.builder.MultiResourceItemWriterBuilder;
+import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
+import org.springframework.batch.item.file.mapping.DefaultLineMapper;
+import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
+import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
+import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
 import org.springframework.batch.item.json.JacksonJsonObjectReader;
 import org.springframework.batch.item.json.JsonItemReader;
 import org.springframework.batch.item.json.builder.JsonItemReaderBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.convert.ConversionService;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -52,11 +63,84 @@ public class BatchConfiguration {
   public LoggerProcessor<Object> objectLogger = new LoggerProcessor<Object>();
 
   @Bean
+  public FlatFileItemWriter<Account> accountCsvWriter() {
+    // Create writer instance
+    FlatFileItemWriter<Account> writer = new FlatFileItemWriter<>();
+    FileSystemResource outputResource = new FileSystemResource("output/outputData.csv");
+    // Set output file location
+    writer.setResource(outputResource);
+
+    // All job repetitions should "append" to same output file
+    writer.setAppendAllowed(true);
+    // Name field values sequence based on object properties
+    writer.setLineAggregator(new DelimitedLineAggregator<Account>() {
+      {
+        setDelimiter(";");
+        setFieldExtractor(new BeanWrapperFieldExtractor<Account>() {
+          {
+            setNames(new String[] { "id", "balance", "lastStatementDate", "iban" });
+          }
+        });
+      }
+    });
+    return writer;
+  }
+
+  @Bean
+  public ConversionService stringToDateConversionService() {
+    DefaultConversionService testConversionService = new DefaultConversionService();
+    DefaultConversionService.addDefaultConverters(testConversionService);
+    testConversionService.addConverter(new Converter<String, Date>() {
+      @Override
+      public Date convert(String text) {
+        Long timeLong = Long.parseLong(text);
+        System.out.println("timeLong: " + timeLong + " string: " + text);
+        Instant instant = Instant.ofEpochMilli(timeLong);
+        return Date.from(instant);
+      }
+    });
+
+    return testConversionService;
+  }
+
+  @Bean
+  public FlatFileItemReader<Account> accountCsvReader() {
+    // Create reader instance
+    FlatFileItemReader<Account> reader = new FlatFileItemReader<Account>();
+
+    // Set input file location
+    reader.setResource(new FileSystemResource("src/main/resources/input-data/accounts.csv"));
+
+    // Set number of lines to skips. Use it if file has header rows.
+    reader.setLinesToSkip(1);
+
+    // Configure how each line will be parsed and mapped to different values
+    reader.setLineMapper(new DefaultLineMapper<Account>() {
+      {
+        // 3 columns in each row
+        setLineTokenizer(new DelimitedLineTokenizer() {
+          {
+            setNames(new String[] { "id", "balance", "lastStatementDate", "iban" });
+            setDelimiter(";");
+          }
+        });
+        // Set values in Employee class
+        setFieldSetMapper(new BeanWrapperFieldSetMapper<Account>() {
+          {
+            setTargetType(Account.class);
+            setDistanceLimit(0);
+            setConversionService(stringToDateConversionService());
+          }
+        });
+      }
+    });
+    return reader;
+  }
+
+  @Bean
   public Job createStatementsJob() {
-    return jobBuilderFactory.get("createStatementsJob").start(importCustomersStep())
-        .next(importAccountsStep()).next(fetchTransactionsStep())
-        .next(calculateNewBalancesStep())
-        .next(generateStatementsStep()).build();
+    return jobBuilderFactory.get("createStatementsJob").start(importCustomersStep()).next(importAccountsStep())
+        .next(fetchTransactionsStep()).next(calculateNewBalancesStep()).next(generateStatementsStep()).build();
   }
 
   @Bean
@@ -67,7 +151,7 @@ public class BatchConfiguration {
 
   @Bean
   public Step importAccountsStep() {
-    return stepBuilderFactory.get("importAccountsStep").<Account, Account>chunk(1).reader(accountJsonReader())
+    return stepBuilderFactory.get("importAccountsStep").<Account, Account>chunk(1).reader(accountCsvReader())
         .writer(new InMemoryWriter<Account>()).listener(promotionListener()).build();
   }
 
@@ -75,8 +159,7 @@ public class BatchConfiguration {
   public Step fetchTransactionsStep() {
     return stepBuilderFactory.get("fetchTransactionsStep").<Account, Account>chunk(1)
         .reader(new InMemoryReader<Account>("Account")).processor(httpTransactionProcessor(null))
-        .writer(new InMemoryWriter<Account>()).faultTolerant().retryLimit(3).retry(HttpServerErrorException.class)
-        .build();
+        .writer(accountCsvWriter()).faultTolerant().retryLimit(3).retry(HttpServerErrorException.class).build();
   }
 
   @Bean

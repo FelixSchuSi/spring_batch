@@ -40,8 +40,16 @@ public class Account {
         return iban;
     }
 
+    public void setIban(String iban) {
+        this.iban = iban;
+    }
+
     public long getId() {
         return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public BigDecimal getBalance() {
@@ -66,6 +74,10 @@ public class Account {
 
     public Date getLastStatementDate() {
         return lastStatementDate;
+    }
+
+    public void setLastStatementDate(Date lastStatementDate) {
+        this.lastStatementDate = lastStatementDate;
     }
 
     public List<Transaction> getTransactions() {
