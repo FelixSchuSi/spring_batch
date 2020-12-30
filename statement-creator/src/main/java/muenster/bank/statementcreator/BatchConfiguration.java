@@ -39,7 +39,6 @@ import muenster.bank.statementcreator.domain.Customer;
 import muenster.bank.statementcreator.domain.Statement;
 import muenster.bank.statementcreator.processor.BalanceCalculatorProcessor;
 import muenster.bank.statementcreator.processor.HttpTransactionProcessor;
-import muenster.bank.statementcreator.processor.LoggerProcessor;
 import muenster.bank.statementcreator.processor.StatementConstructionProcessor;
 import muenster.bank.statementcreator.reader.InMemoryReader;
 import muenster.bank.statementcreator.writer.InMemoryWriter;
@@ -55,10 +54,6 @@ public class BatchConfiguration {
 
   @Autowired
   public StepBuilderFactory stepBuilderFactory;
-
-  public LoggerProcessor<Customer> customerLogger = new LoggerProcessor<Customer>();
-  public LoggerProcessor<Account> accountLogger = new LoggerProcessor<Account>();
-  public LoggerProcessor<Object> objectLogger = new LoggerProcessor<Object>();
 
   @Bean
   public Job createStatementsJob() {
