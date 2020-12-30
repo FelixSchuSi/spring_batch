@@ -4,6 +4,7 @@ const { startDB } = require("./start-db.js");
 const { random500 } = require("./random-500.js");
 
 const port = 3443;
+const RANDOMLY_RETURN_500 = true;
 
 function configureApp(app) {
   app.get("/", (req, res) => {
@@ -14,7 +15,7 @@ function configureApp(app) {
   app.get("/transactions", async (req, res) => {
     const accountId = Number(req.query.accountId);
     if (Number.isNaN(accountId)) { res.sendStatus(400); return }
-    if (random500(accountId)) { res.sendStatus(500); return }
+    if (RANDOMLY_RETURN_500 && random500(accountId)) { res.sendStatus(500); return }
 
     const { transactionDAO } = req.app.locals;
     const transactions = await transactionDAO.findAll({ accountId });
