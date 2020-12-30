@@ -59,7 +59,7 @@ public class Account {
 
     public BigDecimal getNewBalance() {
         if (newBalance == null) {
-            return balance; // "old" balance is used when newBalance is not yet calculated
+            return new BigDecimal(0); //zero is used when newBalance is not yet calculated
         } else {
             return newBalance;
         }
