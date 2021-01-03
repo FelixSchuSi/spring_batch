@@ -1,0 +1,8 @@
+version: "3.3"
+services:
+  transaction-service:
+    build: ./transaction-service/.
+    ports:
+      - "3443:3443"
+    volumes:
+      - ./transaction-service:/app/
