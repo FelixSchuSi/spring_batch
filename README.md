@@ -39,7 +39,4 @@ Kontoauszug für Ihr Konto mit der IBAN: DE59500105178486977952
                                                                  Kontostand am 2020-12-29:  18240,75 €
                Es wurden keine Transaktionen im Zeitraum getätigt.
                                                                  Kontostand am 2021-01-05:      0,00 €
-
-
-
 ```
