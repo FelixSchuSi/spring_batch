@@ -26,14 +26,19 @@ Die Datei `/statement-creator/target/kontoauszug-1.txt` sollte wie folgt aussehe
 
 
 
-Gibbie Peiro                                                                                                Münster Bank
-131 Killdeer Way                                                                                        Corrensstraße 25
-Hamilton, Ohio 28815                                                                                       48149 Münster
+Amanda Dudmarsh                                                                                             Münster Bank
+127 Tomscot Park                                                                                        Corrensstraße 25
+Kansas City, Missouri 64179                                                                                48149 Münster
 
-Kontoauszug für Ihr Konto mit der IBAN: DE70500105177613517489
-                                                                 Kontostand am 2020-12-27:    194,52 €
+Kontoauszug für Ihr Konto mit der IBAN: DE95500105174715376938
+                                                                 Kontostand am 2020-12-29:  15209,25 €
                Es wurden keine Transaktionen im Zeitraum getätigt.
-                                                                 Kontostand am 2021-01-26:      0,00 €
+                                                                 Kontostand am 2021-01-05:      0,00 €
+
+Kontoauszug für Ihr Konto mit der IBAN: DE59500105178486977952
+                                                                 Kontostand am 2020-12-29:  18240,75 €
+               Es wurden keine Transaktionen im Zeitraum getätigt.
+                                                                 Kontostand am 2021-01-05:      0,00 €
 
 
 
