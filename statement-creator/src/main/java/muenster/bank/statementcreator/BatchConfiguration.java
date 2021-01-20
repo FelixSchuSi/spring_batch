@@ -87,6 +87,8 @@ public class BatchConfiguration {
         return stepBuilderFactory.get("fetchTransactionsStep").
                 <Account, Account>chunk(1)
                 .reader(new InMemoryReader<Account>("Account"))
+                // Aufgabe 1 a) Binde den HttpTransactionProcessor als Prozessor ein
+                // Du kannst den den httpTransactionProcessor mit "httpTransactionProcessor(null)" referenzieren.
                 .writer(new InMemoryWriter<Account>())
                 .build();
     }
