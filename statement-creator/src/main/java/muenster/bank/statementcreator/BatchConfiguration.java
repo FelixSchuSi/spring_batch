@@ -89,6 +89,11 @@ public class BatchConfiguration {
                 .reader(new InMemoryReader<Account>("Account"))
                 .processor(httpTransactionProcessor(null))
                 .writer(new InMemoryWriter<Account>())
+                // Aufgabe 2 b) Verbessere die Fehlertoleranz indem du das Retry-Verfahren anwendest
+                // Nehme Folie 11 aus der Präsentation als Vorlage.
+                // Das Verarbeiten des Chunks soll wiederholt werden, wenn die Exception
+                // "org.springframework.web.client.HttpServerErrorException" auftritt.
+
                 .build();
     }
 
