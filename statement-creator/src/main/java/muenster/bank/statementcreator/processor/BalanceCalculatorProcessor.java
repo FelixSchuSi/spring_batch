@@ -13,8 +13,6 @@ public class BalanceCalculatorProcessor implements ItemProcessor<Account, Accoun
     public Account process(Account account) throws Exception {
         List<Transaction> transactions = account.getTransactions();
 
-        // Aufgabe 1: Wie kann anhand des aktuellen Kontostandes des Accounts
-        // und den vorliegenen Transaktionen der neue Kontostand ermittelt werden?
         BigDecimal newBalance = account.getBalance();
 
         for (Transaction transaction : transactions) {
