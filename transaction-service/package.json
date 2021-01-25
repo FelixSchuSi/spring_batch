@@ -2,9 +2,9 @@
   "name": "transaction-service",
   "version": "1.0.0",
   "description": "Micorservice that returns recent transaction of a given account.",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon src/index.js"
   },
   "author": "Felix Schulze Sindern",
   "license": "ISC",
