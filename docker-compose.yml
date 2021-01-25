@@ -5,4 +5,4 @@ services:
     ports:
       - "3443:3443"
     volumes:
-      - ./transaction-service:/app/
+      - ./transaction-service/src:/usr/src/app/src
