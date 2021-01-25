@@ -33,7 +33,7 @@ Hamilton, Ohio 28815                                                            
 Kontoauszug für Ihr Konto mit der IBAN: DE70500105177613517489
                                                                  Kontostand am 2020-12-27:    194,52 €
                Es wurden keine Transaktionen im Zeitraum getätigt.
-                                                                 Kontostand am 2021-01-26:      0,00 €
+                                                                 Kontostand am 2021-01-25:    194,52 €
 
 
 
